@@ -3,7 +3,8 @@
 <head>
 	
     <title>Sembrando Huella</title>
-
+	<link rel=icon href=logo.png>
+	
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js'></script>
@@ -36,23 +37,26 @@
 <script src="guate.geojson"></script>
 <script src="subreg.geojson"></script>
 <script src="reg.geojson"></script>
+<script src="frame.geojson"></script>
 <style>
 
 
 h2{
 	text-align:center;
+	font-size: 15pt;
 }
 
 dl {
-    border: 2px double #ccc;
-    padding: 0.5em;
+    border: 1px double #ccc;
+    padding: 1px;
   }
   dt {
 	
     float: left;
-    clear: left;
+   padding: 0 0 0 16px;
+	clear: left;
 	
-    width: 170px;
+    width: 185px;
    
     font-weight: bold;
     color: green;
@@ -62,10 +66,38 @@ dl {
   }
  
   dd {
-    margin: 0 0 0 170px;
-    padding: 0 0 0.5em 0;
+    margin: 0 0 0 200px;
+    padding: 0 16px 0.5em 0;
   }
+.logo{
+	align: left;
+	height: 80px;
+	width: 80px;
+	float: left;
+}
 
+.header{
+	align: center;
+	clear: right;
+	padding: 10px 0 40px 0;
+
+
+
+}
+.conte{
+	clear:left;
+}
+.logoInab{ 
+	height: 100px;
+	width: 150px;
+}
+
+.logo2{
+	align: right;
+	height: 75px;
+	width: 100px;
+	float: right;
+}
 </style>
 
 <div id="map" style="width: 100vw; height: 100vh;"></div>
@@ -81,20 +113,38 @@ dl {
 		"color": "#ff7800",	
 		"weight": 1,
 		"opacity": 0.3,
-		"fillColor": "#ffffff",
+		"fillColor": "#FBF3A3",
 		"fillOpacity": 0
 		
 	}
 	var regStyle = { //estilo para las lineas de regiones
 		"color": "#ff7800",	
 		"weight": 3,
-		"opacity": 0.7,
+		"opacity": 0.6,
 		"fillColor": "#ffffff",
 		"fillOpacity": 0
 		
 	}
-	
+		var frameStyle = { //estilo para el resto del mundo
+		"color": "#ff7800",	
+		"weight": 3,
+		"opacity": 0,
+		"fillColor": "#ffffff",
+		"fillOpacity": 0.5
+		
+	}
 	var map = L.map('map').setView([15.316175, -90.402719], 4);
+	
+	    //logo inab sobre el mapa
+    var logo_inab = L.control({position: 'topright'});
+    logo_inab.onAdd = function(map){
+        var div = L.DomUtil.create('div', 'logodiv');
+        div.innerHTML= "<img src='inab-logo.png' class='logoInab'/>";
+        return div;
+    }
+	
+    logo_inab.addTo(map);
+	
 	var guateLayer = L.geoJSON();
 	guateLayer.addData(guate);
 	//guateLayer.addTo(map);
@@ -105,20 +155,26 @@ dl {
 	subreglyr.addTo(map);
 	subreglyr.setStyle(subregStyle);
 	
+	var framelyr = L.geoJSON();
+	framelyr.addData(frame);
+	framelyr.addTo(map);
+	framelyr.setStyle(frameStyle);
+	
 	var reglyr = L.geoJSON();
 	reglyr.addData(reg);
 	reglyr.addTo(map);
 	reglyr.setStyle(regStyle);
 	
+	//Mapa de fondo 
 	var Thunderforest_Pioneer = L.tileLayer('https://tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey=45d2630d5e6c400caad9897e25633ccd', {
-	attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Icon made by <a href="https://www.freepik.com">Freepik</a> from <a href="https://www.flaticon.com">www.flaticon.com</a>',
+	attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 	apikey: '<45d2630d5e6c400caad9897e25633ccd>',
-	maxZoom: 22
+	maxZoom: 22,
 	});
 	 map.addLayer(Thunderforest_Pioneer);
+	//----------------------------------------
 	
-	
-	var pointGroupLayer;
+	var pointGroupLayer; //crear la capa donde van a ir los puntos
 	
 	function addPoints(data) {
 	if (pointGroupLayer != null) {
@@ -149,15 +205,24 @@ dl {
 			data[row].plantas === null ? "" :
 			data[row].plantas === 0 ? "" : ("</dd><dt>Árboles reforestados </dt><dd>"+ data[row].plantas)); //muestra la linea de arboles sembrados solo cuando existe el dato
 			
+			var areaRef = (
+			data[row].hectareas === null ? "" :
+			data[row].hectareas === 0 ? "" : ("</dd><dt>Área reforestada</dt><dd>"+ data[row].hectareas +" Ha" ));
+			
+			var especies = (
+			data[row].sp === null ? "" :
+			data[row].sp === "" ? "" : ("</dd><dt>Especies utilizadas</dt><dd>"+ data[row].sp));
+			
+			
 			var marker = L.marker([data[row].y, data[row].x]).addTo(pointGroupLayer);
-			marker.bindPopup("<dl>" + "<h2>Información</h2><dt>Subregión </dt><dd>" + data[row].subreg + "</dd><dt>Fecha </dt><dd>"+ data[row].fecha + arboles + "</dd><h2>Amigos del Bosque</h2><dt>Total de participantes </dt><dd>"+ data[row].total + instituciones + "</dd></dl>",
+			marker.bindPopup("<dl>" + "<table style='width:100%'><tr><th><img src='logo.png' class='logo'></th><th><h2>Información</h2></th><th><img src='inab-logo.png' class='logo2'></table></th></tr><div class='conten'><dt>Subregión </dt><dd>" + data[row].subreg + "</dd><dt>Fecha </dt><dd>"+ data[row].fecha + areaRef + arboles + especies + "</dd><h2>Amigos del Bosque</h2><dt>Total de participantes </dt><dd>"+ data[row].total + instituciones + "</dd></div></dl>",
 			{
-			maxWidth: 380,
+			maxWidth: 500,
 			maxHeight: 700
 			
 			});
 			// icon
-			var icon = L.icon({
+			var icon = L.icon({ //icono de los puntos
 				iconUrl: 'icon.png',
 				iconSize:     [16, 20], // size of the icon
 				iconAnchor:   [8, 20],
@@ -173,10 +238,7 @@ dl {
 	
 	
 	
-}
-
-
-			
+}		
 </script>
 
 
