@@ -137,14 +137,14 @@ dl {
 	
 		    //logo norte sobre el mapa
      var north_arrow = L.control({position: 'topleft'});
-    north_arrow.onAdd =unction(map){
+    north_arrow.onAdd =function(map){
         var div = L.DomUtil.create('div', 'logodiv');
         div.innerHTML= "<img src='north.png' class='northArrow'/>";
         return div;
     }
-var scaleBar = L.control.scale({imperial: false}).addTo(map);
+
     north_arrow.addTo(map);
- 
+ 	var scaleBar = L.control.scale({imperial: false}).addTo(map);
 	    //logo inab sobre el mapa
     var logo_inab = L.control({position: 'topright'});
     logo_inab.onAdd = function(map){
