@@ -39,13 +39,10 @@
 <script src="reg.geojson"></script>
 <script src="frame.geojson"></script>
 <style>
-
-
 h2{
 	text-align:center;
 	font-size: 15pt;
 }
-
 dl {
     border: 1px double #ccc;
     padding: 1px;
@@ -77,14 +74,10 @@ dl {
 	margin-left: 15px;
 	margin-right: 22px;
 }
-
 .header{
 	align: center;
 	clear: right;
 	padding: 10px 0 40px 0;
-
-
-
 }
 .conte{
 	clear:left;
@@ -93,7 +86,6 @@ dl {
 	height: 90px;
 	width: 146px;
 }
-
 .logo2{
 	align: right;
 	height: 60px;
@@ -109,9 +101,6 @@ dl {
 
 <div id="map" style="width: 100vw; height: 100vh;"></div>
 <script>
-
-
-
 	$.getJSON('https://api.sheety.co/e63bfa0b-68d2-4a7d-9a07-9d084fe59eab', function(json) {
 		addPoints(json);
 	});
@@ -149,7 +138,6 @@ dl {
         div.innerHTML= "<img src='north.png' class='northArrow'/>";
         return div;
     }
-
     north_arrow.addTo(map);
  	var scaleBar = L.control.scale({imperial: false}).addTo(map);
 	    //logo inab sobre el mapa
@@ -165,7 +153,6 @@ dl {
 	var guateLayer = L.geoJSON();
 	guateLayer.addData(guate);
 	//guateLayer.addTo(map);
-
 	
 	var subreglyr = L.geoJSON();
 	subreglyr.addData(subreg);
@@ -199,9 +186,19 @@ dl {
 	}
 	
 	pointGroupLayer = L.featureGroup().addTo(map);
+	var subregturf = subreglyr.toGeoJSON();
 	
 	for(var row = 0; row < data.length; row++) {
 		if (data[row].y > 13.8 && data[row].jornada === 1){
+		
+				//----------------turf js--------------------------
+		var pt1 = turf.point([data[row].x, data[row].y]);
+		var ptsTurf = turf.featureCollection([pt1]);
+		if (!ptsTurf.properties) ptsTurf.properties = {};if (ptsTurf.properties['excelPt'] === undefined) {ptsTurf.properties['excelPt'] = data[row].subreg_no};
+		var puntoMapa = turf.tag(ptsTurf, subregturf, 'SubReg_cod', 'subreg_mapa');
+		
+		
+		//------------------------------------------
 			// bloque para crear un array con las instituciones colaboradoras sin que se repitan los nombres
 			var inst1 = new Array();
 			var inst2 = new Array();
@@ -245,7 +242,10 @@ dl {
 				iconAnchor:   [8, 20],
 				popupAnchor: [0, -18],
 			});
+			
+			if(puntoMapa.properties['excelPt'] === puntoMapa.features[0].properties['subreg_mapa']){
 			marker.setIcon(icon);
+			}else {console.log(row); marker.setIcon(iconMalo);}
 			
 			}
 			
