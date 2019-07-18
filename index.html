@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
+	<script src=https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js></script>
 	
 </head>
 <body>
@@ -179,6 +180,7 @@ dl {
 	//----------------------------------------
 	
 	var pointGroupLayer; //crear la capa donde van a ir los puntos
+	var subregturf = subreglyr.toGeoJSON(); //convertir a geoJSON el shape de subregiones para usarlo en turf.js
 	
 	function addPoints(data) {
 	if (pointGroupLayer != null) {
@@ -189,6 +191,16 @@ dl {
 	
 	for(var row = 0; row < data.length; row++) {
 		if (data[row].y > 13.8 && data[row].jornada === 1){
+			
+			//----------------turf js--------------------------
+			var pt1 = turf.point([data[row].x, data[row].y]);
+			var ptsTurf = turf.featureCollection([pt1]);
+			if (!ptsTurf.properties) ptsTurf.properties = {};if (ptsTurf.properties['excelPt'] === undefined) {ptsTurf.properties['excelPt'] = data[row].subreg_no};
+			var puntoMapa = turf.tag(ptsTurf, subregturf, 'SubReg_cod', 'subreg_mapa');
+
+
+			//------------------------------------------
+			if(puntoMapa.properties['excelPt'] === puntoMapa.features[0].properties['subreg_mapa']){ //condicion para no graficar los puntos que estan en la subregion erronea o fuera del mapa
 			// bloque para crear un array con las instituciones colaboradoras sin que se repitan los nombres
 			var inst1 = new Array();
 			var inst2 = new Array();
@@ -233,7 +245,7 @@ dl {
 				popupAnchor: [0, -18],
 			});
 			marker.setIcon(icon);
-			
+			} //fin de condicion para crear puntos solo en la region correcta y dentro del mapa
 			}
 			
 		}
