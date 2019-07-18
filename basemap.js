@@ -20,5 +20,6 @@ var baseMapIndex = {
 				"Satellite": sat_view,
 				"Terrain": terrain
 			};
-var layerControl = L.control.layers(baseMapIndex, {collapsed: false, position: 'bottomright'});
+var layerControl = L.control.layers(baseMapIndex, null, {position: 'bottomleft'});
 layerControl.addTo(map);
+layerControl.setOptions
