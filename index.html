@@ -32,6 +32,11 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"/>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
 	<script src=https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js></script>
+									  
+	<script src="proj4.js"></script>
+	<script src="proj4leaflet.js"></script>
+										
+ 
 	
 </head>
 <body>
@@ -171,8 +176,10 @@ dl {
 	reglyr.addData(reg);
 	reglyr.addTo(map);
 	reglyr.setStyle(regStyle);
-	
-
+																															 
+ 
+	proj4.defs("SR-ORG:6866", "+proj=tmerc +lat_0=0 +lon_0=-90.5 +k=0.9998 +x_0=500000 +y_0=0 +ellps=WGS84 +units=m +no_defs ");
+																																			
 	//----------------------------------------
 	
 	var pointGroupLayer; //crear la capa donde van a ir los puntos
@@ -184,19 +191,49 @@ dl {
 	}
 	
 	pointGroupLayer = L.featureGroup().addTo(map);
+							   
+						   
+  
+ 
+											   
+										
+																	 
 	
+				
 	for(var row = 0; row < data.length; row++) {
-		if (data[row].y > 13.8 && data[row].jornada === 1){
+		data[row].x_geografic = "";
+		data[row].y_geografic ="";					
+		if (data[row].y > 0 && data[row].jornada === 1){
 			
+											 
+		//---------------------geoJSON para proyectar de GTM a geog ------------------
+		var puntoProject = {
+			  "type": "Feature",
+			  "geometry": {
+				"type": "Point",
+				"coordinates": [data[row].x, data[row].y]
+			  },
+			  "crs": {
+				"type": "name",
+				"properties": {
+				  "name": "SR-ORG:6866"
+				}
+			  }
+			};
+						 
+		//------------------------------------------			  										  
 			//----------------turf js--------------------------
-			var pt1 = turf.point([data[row].x, data[row].y]);
-			var ptsTurf = turf.featureCollection([pt1]);
+			
+			var ptsTurf = rf = L.Proj.geoJson(puntoProject).toGeoJSON();
 			if (!ptsTurf.properties) ptsTurf.properties = {};if (ptsTurf.properties['excelPt'] === undefined) {ptsTurf.properties['excelPt'] = data[row].subreg_no};
 			var puntoMapa = turf.tag(ptsTurf, subregturf, 'SubReg_cod', 'subreg_mapa');
-
-
 			//------------------------------------------
 			if(puntoMapa.properties['excelPt'] === puntoMapa.features[0].properties['subreg_mapa']){ //condicion para no graficar los puntos que estan en la subregion erronea o fuera del mapa
+																																						  
+																			 
+												 
+  
+																														   
 			// bloque para crear un array con las instituciones colaboradoras sin que se repitan los nombres
 			var inst1 = new Array();
 			var inst2 = new Array();
@@ -225,29 +262,57 @@ dl {
 			data[row].sp === null ? "" :
 			data[row].sp === "" ? "" : ("</dd><dt>Especies utilizadas</dt><dd>"+ data[row].sp));
 			
-			
-			var marker = L.marker([data[row].y, data[row].x]).addTo(pointGroupLayer);
-			marker.bindPopup("<dl>" + "<table style='width:100%'><tr><th><img src='logo.png' class='logo'></th><th><h2>Información</h2></th><th><img src='inab-logo.png' class='logo2'></table></th></tr><div class='conten'><dt>Subregión </dt><dd>" + data[row].subreg + "</dd><dt>Fecha </dt><dd>"+ data[row].fecha + areaRef + arboles + especies + "</dd><h2>Amigos del Bosque</h2><dt>Total de participantes </dt><dd>"+ data[row].total + instituciones + "</dd></div></dl>",
-			{
-			maxWidth: 500,
-			maxHeight: 700
-			
-			});
-			// icon
 			var icon = L.icon({ //icono de los puntos
 				iconUrl: 'icon.png',
 				iconSize:     [16, 20], // size of the icon
 				iconAnchor:   [8, 20],
 				popupAnchor: [0, -18],
 			});
-			marker.setIcon(icon);
+			
+			var marker = L.Proj.geoJson(puntoProject, {
+				pointToLayer: function (feature, latlng) {return L.marker(latlng, {icon: icon});}});
+				marker.addTo(pointGroupLayer);
+				marker.bindPopup("<dl>" + "<table style='width:100%'><tr><th><img src='logo.png' class='logo'></th><th><h2>Información</h2></th><th><img src='inab-logo.png' class='logo2'></table></th></tr><div class='conten'><dt>Subregión </dt><dd>" + data[row].subreg + "</dd><dt>Fecha </dt><dd>"+ data[row].fecha + areaRef + arboles + especies + "</dd><h2>Amigos del Bosque</h2><dt>Total de participantes </dt><dd>"+ data[row].total + instituciones +"</dd></div></dl>",
+				{
+				maxWidth: 500,
+				maxHeight: 700
+				
+				});
+						   
+						   
+	   
+			
+			
 			} //fin de condicion para crear puntos solo en la region correcta y dentro del mapa
 			}
 			
+						  
+						  
+	   
+	  
+					   
+	
+   
+											  
+																						
+								  
+																																																																																																																			 
+	 
+				  
+				  
+	
+	   
 		}
+														 
+																																				 
+   
 		map.fitBounds(guateLayer.getBounds());
 		
 	
+   
+												
+												 
+												  
 	
 	
 }		
